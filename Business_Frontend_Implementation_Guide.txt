@@ -1,0 +1,898 @@
+================================================================================
+BUSINESS FEATURES - FRONTEND IMPLEMENTATION GUIDE
+================================================================================
+
+### 1. BUSINESS PROFILE MANAGEMENT (US08)
+
+Purpose: Allow businesses to create professional profiles, showcase products/
+services, and build brand presence on Pinterest.
+
+--------------------------------------------------------------------------------
+FRONTEND PAGES NEEDED:
+--------------------------------------------------------------------------------
+
+A. Create Business Profile Page
+   - Form to convert personal account to business account
+   - Fields: Business name, description, website, category, logo upload, 
+     contact email
+   - Call: POST /business/profile
+
+B. Business Profile Display Page
+   - Show business info, logo, website link, follower count
+   - Display all business boards (product/service collections)
+   - "Follow Business" button for users
+   - Call: GET /business/profile/{businessId}
+
+C. Edit Business Profile Page
+   - Update business details (name, description, logo, etc.)
+   - Call: PUT /business/profile/{businessId}
+
+================================================================================
+
+### 2. BUSINESS SHOWCASES (US08)
+
+Purpose: Curated collections of pins to highlight products, services, or 
+seasonal campaigns.
+
+--------------------------------------------------------------------------------
+FRONTEND COMPONENTS:
+--------------------------------------------------------------------------------
+
+A. Create Showcase Modal/Page
+   - Form: Title, description, theme selection
+   - Call: POST /business/showcases
+
+B. Showcase Management Page
+   - List all showcases for business
+   - Edit showcase details
+   - Add/remove pins from showcase
+   - Reorder pins (display order)
+   - Toggle active/inactive status
+   - Calls:
+     * PUT /business/showcases/{showcaseId} - Update
+     * POST /business/showcases/{showcaseId}/pins/{pinId} - Add pin
+     * DELETE /business/showcases/{showcaseId}/pins/{pinId} - Remove pin
+
+C. Browse Showcases Page (Public View)
+   - Grid/carousel view of active showcases
+   - Filter by theme/category
+   - Click to view showcase pins
+   - Call: GET /business/showcases?page=0&size=20
+
+================================================================================
+
+### 3. SPONSORED PINS & ADVERTISING (US09)
+
+Purpose: Businesses pay to promote pins, users see targeted ads in their feed.
+
+--------------------------------------------------------------------------------
+FRONTEND FEATURES:
+--------------------------------------------------------------------------------
+
+A. Create Sponsored Campaign Page
+   - Select a pin to sponsor
+   - Campaign name, budget, start/end dates
+   - Call: POST /business/sponsored-pins
+
+B. Campaign Management Dashboard
+   - List all campaigns with status badges (Pending/Active/Paused/Completed)
+   - Quick actions: Pause, Resume, Edit, Delete
+   - Calls:
+     * GET /business/sponsored-pins - List campaigns
+     * PUT /business/sponsored-pins/{sponsoredId}/pause - Pause
+     * PUT /business/sponsored-pins/{sponsoredId}/resume - Resume
+     * PUT /business/sponsored-pins/{sponsoredId} - Update campaign
+     * DELETE /business/sponsored-pins/{sponsoredId} - Delete
+
+C. User Home Feed - Sponsored Content
+   - Show sponsored pins mixed in regular feed
+   - **Clear "Sponsored" label** on promoted pins
+   - Link to business profile/website
+   - Users can still like/save sponsored pins
+   - Call: GET /business/sponsored-feed?page=0&size=20
+
+D. Browse Sponsored Pins Page (Optional)
+   - Dedicated section showing all active sponsored content
+   - Filter by category/interest
+   - Call: GET /business/sponsored-feed
+
+================================================================================
+
+### 4. CAMPAIGN ANALYTICS (US09)
+
+Purpose: Show businesses ROI, engagement metrics, and campaign performance.
+
+--------------------------------------------------------------------------------
+ANALYTICS DASHBOARD PAGE:
+--------------------------------------------------------------------------------
+
+DISPLAY METRICS:
+
+1. Performance Metrics
+   - Impressions
+   - Clicks
+   - CTR (click-through rate)
+   - Saves
+   - Engagement rate
+
+2. Spending Metrics
+   - Budget
+   - Spent
+   - Remaining
+   - Cost-per-click
+   - Cost-per-save
+
+3. Demographics
+   - Age groups (18-24, 25-34, 35-44, etc.)
+   - Top locations (US, UK, CA, etc.)
+
+4. Timeline
+   - Daily/weekly performance charts
+   - Impressions over time
+   - Clicks over time
+   - Saves over time
+
+API Call: GET /business/analytics/{campaignId}
+
+UI Components:
+- Charts (line/bar graphs for timeline)
+- KPI cards (metrics at a glance)
+- Demographics pie charts
+- Export report button (optional)
+
+================================================================================
+
+### 5. USER-FACING FEATURES
+
+What Regular Users See:
+
+1. Business Profile Badge - Visual indicator on business accounts
+2. Showcases in Search - Discover curated collections
+3. Sponsored Pins in Feed - Marked with "Sponsored" tag
+4. Follow Business - Get updates from favorite brands
+5. Shop Pins - Click through to business website
+
+================================================================================
+
+### COMPLETE ENDPOINT USAGE SUMMARY
+
+--------------------------------------------------------------------------------
+Feature                      | Method | Endpoint                              
+--------------------------------------------------------------------------------
+Create Business Profile      | POST   | /business/profile
+View Business Profile        | GET    | /business/profile/{id}
+Update Business Profile      | PUT    | /business/profile/{id}
+Create Showcase              | POST   | /business/showcases
+Browse Showcases             | GET    | /business/showcases
+Update Showcase              | PUT    | /business/showcases/{id}
+Add Pin to Showcase          | POST   | /business/showcases/{id}/pins/{pinId}
+Remove Pin from Showcase     | DELETE | /business/showcases/{id}/pins/{pinId}
+Create Sponsored Campaign    | POST   | /business/sponsored-pins
+List Campaigns               | GET    | /business/sponsored-pins
+Update Campaign              | PUT    | /business/sponsored-pins/{id}
+Pause Campaign               | PUT    | /business/sponsored-pins/{id}/pause
+Resume Campaign              | PUT    | /business/sponsored-pins/{id}/resume
+Delete Campaign              | DELETE | /business/sponsored-pins/{id}
+Sponsored Feed (Users)       | GET    | /business/sponsored-feed
+Campaign Analytics           | GET    | /business/analytics/{campaignId}
+--------------------------------------------------------------------------------
+
+================================================================================
+
+### FRONTEND PAGE RECOMMENDATIONS
+
+1. Business Dashboard (Main Hub)
+   - Profile overview
+   - Quick stats (followers, campaigns, showcases)
+   - Links to manage profile, showcases, campaigns
+
+2. Profile Management
+   - Edit business details
+   - Upload logo
+   - Manage contact info
+
+3. Showcase Manager
+   - Create/edit showcases
+   - Drag-and-drop pin ordering
+   - Theme selection
+
+4. Campaign Manager
+   - Create new campaigns
+   - List all campaigns with filters
+   - Pause/resume controls
+   - View analytics per campaign
+
+5. Analytics Dashboard
+   - Campaign performance overview
+   - Visual charts and graphs
+   - Demographic insights
+   - Export capabilities
+
+6. Public-Facing Pages
+   - Business profile page (for users)
+   - Showcase gallery (browsing)
+   - Sponsored content in main feed
+
+================================================================================
+
+This gives businesses a complete advertising platform while users get a 
+curated, professional shopping/discovery experience!
+
+================================================================================
+END OF DOCUMENT
+================================================================================
+"/business/sponsored-pins/{sponsoredId}": {
+      "put": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Update sponsored pin campaign",
+        "operationId": "updateSponsoredPin",
+        "parameters": [
+          {
+            "name": "sponsoredId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SponsoredPinUpdateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSponsoredPinResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Delete sponsored pin campaign",
+        "operationId": "deleteSponsoredPin",
+        "parameters": [
+          {
+            "name": "sponsoredId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/business/sponsored-pins/{sponsoredId}/resume": {
+      "put": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Resume sponsored pin campaign",
+        "operationId": "resumeSponsoredPin",
+        "parameters": [
+          {
+            "name": "sponsoredId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSponsoredPinResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/business/sponsored-pins/{sponsoredId}/pause": {
+      "put": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Pause sponsored pin campaign",
+        "operationId": "pauseSponsoredPin",
+        "parameters": [
+          {
+            "name": "sponsoredId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSponsoredPinResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/business/showcases/{showcaseId}": {
+      "put": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Update showcase",
+        "operationId": "updateShowcase",
+        "parameters": [
+          {
+            "name": "showcaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessShowcaseUpdateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBusinessShowcaseResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/business/profile/{businessId}": {
+      "get": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Get business profile by ID",
+        "operationId": "getBusinessProfile",
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBusinessProfileResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Update business profile",
+        "operationId": "updateBusinessProfile",
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessProfileUpdateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBusinessProfileResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/business/sponsored-pins": {
+      "get": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Get business sponsored pins",
+        "operationId": "getSponsoredPins",
+        "parameters": [
+          {
+            "name": "X-Business-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaginatedResponseSponsoredPinResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Create sponsored pin",
+        "operationId": "createSponsoredPin",
+        "parameters": [
+          {
+            "name": "X-Business-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SponsoredPinCreateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSponsoredPinResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/business/showcases": {
+      "get": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Get active business showcases",
+        "operationId": "getActiveShowcases",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePaginatedResponseBusinessShowcaseResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Create business showcase",
+        "operationId": "createShowcase",
+        "parameters": [
+          {
+            "name": "X-Business-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessShowcaseCreateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBusinessShowcaseResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/business/showcases/{showcaseId}/pins/{pinId}": {
+      "post": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Add pin to showcase",
+        "operationId": "addPinToShowcase",
+        "parameters": [
+          {
+            "name": "showcaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pinId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "displayOrder",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Remove pin from showcase",
+        "operationId": "removePinFromShowcase",
+        "parameters": [
+          {
+            "name": "showcaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pinId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseString"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/business/profile": {
+      "post": {
+        "tags": [
+          "Business"
+        ],
+        "summary": "Create business profile",
+        "operationId": "createBusinessProfile",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessProfileCreateDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBusinessProfileResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
