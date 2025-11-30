@@ -293,6 +293,35 @@ public class SocialService {
         return new PaginatedResponse<>(invitations, pagination);
     }
 
+    public PaginatedResponse<InvitationResponseDTO> getSentInvitations(String userId, String status, int page, int size) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Invitation> invitationPage;
+
+        if (status != null && !status.isEmpty()) {
+            Invitation.Status statusEnum = Invitation.Status.valueOf(status.toUpperCase());
+            invitationPage = invitationRepository.findByFromUserIdAndStatus(userId, statusEnum, pageable);
+        } else {
+            invitationPage = invitationRepository.findByFromUserId(userId, pageable);
+        }
+
+        List<InvitationResponseDTO> invitations = invitationPage.getContent().stream()
+                .map(this::buildInvitationResponse)
+                .collect(Collectors.toList());
+
+        PaginationDTO pagination = new PaginationDTO(
+                invitationPage.getNumber(),
+                invitationPage.getTotalPages(),
+                invitationPage.getTotalElements(),
+                invitationPage.getSize(),
+                invitationPage.hasNext(),
+                invitationPage.hasPrevious()
+        );
+
+        return new PaginatedResponse<>(invitations, pagination);
+    }
+
     @Transactional
     public void respondToInvitation(String invitationId, String userId, String action) {
         Invitation invitation = invitationRepository.findById(invitationId)
@@ -460,6 +489,14 @@ public class SocialService {
             userSummary.setUsername(user.getUsername());
             userSummary.setProfilePictureUrl(user.getProfilePictureUrl());
             dto.setFrom(userSummary);
+        });
+
+        userRepository.findById(invitation.getToUserId()).ifPresent(user -> {
+            UserSummaryDTO userSummary = new UserSummaryDTO();
+            userSummary.setUserId(user.getUserId());
+            userSummary.setUsername(user.getUsername());
+            userSummary.setProfilePictureUrl(user.getProfilePictureUrl());
+            dto.setTo(userSummary);
         });
 
         boardRepository.findById(invitation.getBoardId()).ifPresent(board -> {

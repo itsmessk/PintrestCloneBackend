@@ -76,6 +76,28 @@ public class BusinessService {
         return buildBusinessProfileResponse(savedProfile);
     }
 
+    public PaginatedResponse<BusinessProfileResponseDTO> getAllBusinesses(int page, int size) {
+        log.info("Fetching all business profiles");
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<BusinessProfile> businessPage = businessProfileRepository.findAll(pageable);
+
+        List<BusinessProfileResponseDTO> businesses = businessPage.getContent().stream()
+                .map(this::buildBusinessProfileResponse)
+                .collect(Collectors.toList());
+
+        PaginationDTO pagination = new PaginationDTO(
+                businessPage.getNumber(),
+                businessPage.getTotalPages(),
+                businessPage.getTotalElements(),
+                businessPage.getSize(),
+                businessPage.hasNext(),
+                businessPage.hasPrevious()
+        );
+
+        return new PaginatedResponse<>(businesses, pagination);
+    }
+
     public BusinessProfileResponseDTO getBusinessProfile(String businessId) {
         BusinessProfile profile = businessProfileRepository.findById(businessId)
                 .orElseThrow(() -> new BusinessProfileNotFoundException("Business profile not found"));

@@ -233,7 +233,17 @@ public class PinService {
             log.info("Fetching pins for user: {}", userId);
             Sort sort = Sort.by(Sort.Direction.DESC, sortBy != null ? sortBy : "createdAt");
             Pageable pageable = PageRequest.of(page, size, sort);
-            Page<Pin> pinPage = pinRepository.findByUserId(userId, pageable);
+            
+            // If viewing own profile, show all pins including drafts
+            // If viewing other user's profile, show only published pins (isDraft=false)
+            Page<Pin> pinPage;
+            boolean isOwnProfile = userId.equals(requestingUserId);
+            if (isOwnProfile) {
+                pinPage = pinRepository.findByUserId(userId, pageable);
+            } else {
+                pinPage = pinRepository.findByUserIdAndIsDraft(userId, false, pageable);
+            }
+            
             List<PinResponseDTO> pins = pinPage.getContent().stream()
                     .map(pin -> {
                         User user = userRepository.findById(pin.getUserId()).orElse(null);

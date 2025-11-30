@@ -113,31 +113,31 @@ public class BoardController {
                 .ok(ApiResponse.success("Boards retrieved successfully", response));
     }
 
-    @GetMapping
-    @Operation(summary = "Get all public boards for home page")
-    public ResponseEntity<ApiResponse<PaginatedResponse<BoardResponseDTO>>> getAllPublicBoards(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size,
-            @RequestParam(required = false) String sort) {
-        log.info("GET /boards - Fetching all public boards");
+        @GetMapping
+        @Operation(summary = "Get all public boards for home page")
+        public ResponseEntity<ApiResponse<PaginatedResponse<BoardResponseDTO>>> getAllPublicBoards(
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "50") int size,
+                @RequestParam(required = false) String sort) {
+                log.info("GET /boards - Fetching all public boards");
 
-        PaginatedResponse<BoardResponseDTO> response = boardService.getAllPublicBoards(page, size, sort);
-        return ResponseEntity
-                .ok(ApiResponse.success("Public boards retrieved successfully", response));
-    }
+                PaginatedResponse<BoardResponseDTO> response = boardService.getAllPublicBoards(page, size, sort);
+                return ResponseEntity
+                        .ok(ApiResponse.success("Public boards retrieved successfully", response));
+        }
 
-    @GetMapping("/collaborative")
-    @Operation(summary = "Get boards where user is a collaborator")
-    public ResponseEntity<ApiResponse<PaginatedResponse<BoardResponseDTO>>> getCollaborativeBoards(
-            @RequestHeader("X-User-Id") String userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) String sort) {
-        log.info("GET /boards/collaborative - Fetching collaborative boards for user: {}", userId);
+        @GetMapping("/collaborative")
+        @Operation(summary = "Get boards where user is a collaborator")
+        public ResponseEntity<ApiResponse<PaginatedResponse<BoardResponseDTO>>> getCollaborativeBoards(
+                @RequestHeader("X-User-Id") String userId,
+                @RequestParam(defaultValue = "0") int page,
+                @RequestParam(defaultValue = "20") int size,
+                @RequestParam(required = false) String sort) {
+                log.info("GET /boards/collaborative - Fetching collaborative boards for user: {}", userId);
 
-        PaginatedResponse<BoardResponseDTO> response = boardService.getCollaborativeBoards(userId, page, size, sort);
-        return ResponseEntity
-                .ok(ApiResponse.success("Collaborative boards retrieved successfully", response));
-    }
+                PaginatedResponse<BoardResponseDTO> response = boardService.getCollaborativeBoards(userId, page, size, sort);
+                return ResponseEntity
+                        .ok(ApiResponse.success("Collaborative boards retrieved successfully", response));
+        }
 
 }

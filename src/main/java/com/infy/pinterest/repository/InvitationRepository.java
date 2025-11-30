@@ -21,6 +21,10 @@ public interface InvitationRepository extends JpaRepository<Invitation, String> 
 
     Page<Invitation> findByFromUserId(String fromUserId, Pageable pageable);
 
+    Page<Invitation> findByFromUserIdAndStatus(String fromUserId,
+                                               Invitation.Status status,
+                                               Pageable pageable);
+
     Optional<Invitation> findByBoardIdAndToUserIdAndStatus(String boardId,
                                                            String toUserId,
                                                            Invitation.Status status);

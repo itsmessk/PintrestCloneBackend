@@ -81,7 +81,7 @@ public class SocialController {
     }
 
     @GetMapping("/invitations")
-    @Operation(summary = "Get user's invitations")
+    @Operation(summary = "Get user's received invitations")
     public ResponseEntity<ApiResponse<PaginatedResponse<InvitationResponseDTO>>> getInvitations(
             @RequestHeader("X-User-Id") String currentUserId,
             @RequestParam(required = false) String status,
@@ -89,6 +89,17 @@ public class SocialController {
             @RequestParam(defaultValue = "20") int size) {
         PaginatedResponse<InvitationResponseDTO> response = socialService.getInvitations(currentUserId, status, page, size);
         return ResponseEntity.ok(ApiResponse.success("Invitations retrieved successfully", response));
+    }
+
+    @GetMapping("/invitations/sent")
+    @Operation(summary = "Get user's sent invitations")
+    public ResponseEntity<ApiResponse<PaginatedResponse<InvitationResponseDTO>>> getSentInvitations(
+            @RequestHeader("X-User-Id") String currentUserId,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        PaginatedResponse<InvitationResponseDTO> response = socialService.getSentInvitations(currentUserId, status, page, size);
+        return ResponseEntity.ok(ApiResponse.success("Sent invitations retrieved successfully", response));
     }
 
     @GetMapping("/invitations/{invitationId}")

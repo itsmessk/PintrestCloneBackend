@@ -151,7 +151,7 @@ class BoardServiceTest {
         when(modelMapper.map(any(Board.class), eq(BoardResponseDTO.class))).thenReturn(boardResponseDTO);
 
         // Act
-        BoardResponseDTO result = boardService.createBoard("user-123", boardCreationDTO);
+        BoardResponseDTO result = boardService.createBoard("user-123", boardCreationDTO, null);
 
         // Assert
         assertNotNull(result);
@@ -168,7 +168,7 @@ class BoardServiceTest {
 
         // Act & Assert
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            boardService.createBoard("non-existent", boardCreationDTO);
+            boardService.createBoard("non-existent", boardCreationDTO, null);
         });
 
         assertEquals("User not found with ID: non-existent", exception.getMessage());
@@ -193,7 +193,7 @@ class BoardServiceTest {
         when(modelMapper.map(any(Board.class), eq(BoardResponseDTO.class))).thenReturn(boardResponseDTO);
 
         // Act
-        boardService.createBoard("user-123", boardCreationDTO);
+        boardService.createBoard("user-123", boardCreationDTO, null);
 
         // Assert
         verify(boardRepository).save(any(Board.class));
@@ -208,7 +208,7 @@ class BoardServiceTest {
         when(modelMapper.map(any(Board.class), eq(BoardResponseDTO.class))).thenReturn(boardResponseDTO);
 
         // Act
-        BoardResponseDTO result = boardService.createBoard("user-123", boardCreationDTO);
+        BoardResponseDTO result = boardService.createBoard("user-123", boardCreationDTO, null);
 
         // Assert
         assertNotNull(result);
@@ -891,7 +891,7 @@ class BoardServiceTest {
         when(modelMapper.map(any(Board.class), eq(BoardResponseDTO.class))).thenReturn(boardResponseDTO);
 
         // Act - Create
-        BoardResponseDTO created = boardService.createBoard("user-123", boardCreationDTO);
+        BoardResponseDTO created = boardService.createBoard("user-123", boardCreationDTO, null);
 
         // Arrange - Update
         when(boardRepository.findByBoardIdAndUserId("board-001", "user-123")).thenReturn(Optional.of(board));
@@ -913,7 +913,7 @@ class BoardServiceTest {
         when(modelMapper.map(any(Board.class), eq(BoardResponseDTO.class))).thenReturn(boardResponseDTO);
 
         // Act - Create
-        boardService.createBoard("user-123", boardCreationDTO);
+        boardService.createBoard("user-123", boardCreationDTO, null);
 
         // Arrange - Delete
         when(boardRepository.findByBoardIdAndUserId("board-001", "user-123")).thenReturn(Optional.of(board));

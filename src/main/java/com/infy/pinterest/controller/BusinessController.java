@@ -40,6 +40,16 @@ package com.infy.pinterest.controller;
          BusinessProfileResponseDTO response = businessService.getBusinessProfile(businessId);
          return ResponseEntity.ok(ApiResponse.success("Business profile retrieved successfully", response));
      }
+
+     @GetMapping("/all")
+     @Operation(summary = "Get all business profiles")
+     public ResponseEntity<ApiResponse<PaginatedResponse<BusinessProfileResponseDTO>>> getAllBusinesses(
+             @RequestParam(defaultValue = "0") int page,
+             @RequestParam(defaultValue = "20") int size) {
+         log.info("GET /business/all - Fetching all business profiles");
+         PaginatedResponse<BusinessProfileResponseDTO> response = businessService.getAllBusinesses(page, size);
+         return ResponseEntity.ok(ApiResponse.success("Business profiles retrieved successfully", response));
+     }
      // ========== SHOWCASES ==========
     @PostMapping("/showcases")
     @Operation(summary = "Create business showcase")

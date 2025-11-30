@@ -14,6 +14,7 @@ public class InvitationResponseDTO {
     private String invitationId;
     private String type;
     private UserSummaryDTO from;
+    private UserSummaryDTO to;
     private BoardSummaryDTO board;
     private String message;
     private String permission;
