@@ -6,7 +6,6 @@ import com.infy.pinterest.exception.*;
 import com.infy.pinterest.repository.*;
 import com.infy.pinterest.utility.FileUploadService;
 import com.infy.pinterest.utility.JwtUtil;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,40 +21,40 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private PinRepository pinRepository;
-
-    @Autowired
-    private BoardRepository boardRepository;
-
-    @Autowired
-    private FollowRepository followRepository;
-
-    @Autowired
-    private BlockedUserRepository blockedUserRepository;
-
-    @Autowired
-    private FileUploadService fileUploadService;
-
-
-
-
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
+    private final JwtUtil jwtUtil;
+    private final PinRepository pinRepository;
+    private final BoardRepository boardRepository;
+    private final FollowRepository followRepository;
+    private final BlockedUserRepository blockedUserRepository;
+    private final BusinessProfileRepository businessProfileRepository;
+    private final FileUploadService fileUploadService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final Random random = new Random();
+
+    @Autowired
+    public UserService(UserRepository userRepository, ModelMapper modelMapper, JwtUtil jwtUtil,
+                      PinRepository pinRepository, BoardRepository boardRepository,
+                      FollowRepository followRepository, BlockedUserRepository blockedUserRepository,
+                      BusinessProfileRepository businessProfileRepository,
+                      FileUploadService fileUploadService) {
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+        this.jwtUtil = jwtUtil;
+        this.pinRepository = pinRepository;
+        this.boardRepository = boardRepository;
+        this.followRepository = followRepository;
+        this.blockedUserRepository = blockedUserRepository;
+        this.businessProfileRepository = businessProfileRepository;
+        this.fileUploadService = fileUploadService;
+    }
+
     private static final int MAX_FAILED_ATTEMPTS = 3;
     private static final int LOCK_TIME_DURATION = 60; // seconds
 
@@ -214,7 +213,7 @@ public class UserService {
 
         List<UserResponseDTO> users = userPage.getContent().stream()
                 .map(user -> modelMapper.map(user, UserResponseDTO.class))
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 userPage.getNumber(),
@@ -267,9 +266,8 @@ public class UserService {
     }
 
     /**
-     * Login user with circuit breaker
+     * Login user
      */
-    @CircuitBreaker(name = "loginCircuitBreaker", fallbackMethod = "loginFallback")
     public LoginResponseDTO loginUser(UserLoginDTO loginDTO) {
         log.info("Login attempt for email: {}", loginDTO.getEmail());
 
@@ -277,25 +275,23 @@ public class UserService {
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
                         // Check if account is locked
-        if (user.getFailedLoginAttempts() >= MAX_FAILED_ATTEMPTS) {
-            if (user.getLastFailedLoginAt() != null) {
-                long secondsSinceLastAttempt = Duration.between( user.getLastFailedLoginAt(),
-                        LocalDateTime.now()
-                ).getSeconds();
+        if (user.getFailedLoginAttempts() >= MAX_FAILED_ATTEMPTS && user.getLastFailedLoginAt() != null) {
+            long secondsSinceLastAttempt = Duration.between(user.getLastFailedLoginAt(),
+                    LocalDateTime.now()
+            ).getSeconds();
 
-                if (secondsSinceLastAttempt < LOCK_TIME_DURATION) {
-                    int retryAfter = (int) (LOCK_TIME_DURATION - secondsSinceLastAttempt);
-                    throw new AccountLockedException(
-                            "Too many failed login attempts. Please try again after " +
-                                    retryAfter + " seconds",
-                            retryAfter
-                    );
-                } else {
-                    // Reset failed attempts after lock duration
-                    user.setFailedLoginAttempts(0);
-                    user.setLastFailedLoginAt(null);
-                    userRepository.save(user);
-                }
+            if (secondsSinceLastAttempt < LOCK_TIME_DURATION) {
+                int retryAfter = (int) (LOCK_TIME_DURATION - secondsSinceLastAttempt);
+                throw new AccountLockedException(
+                        "Too many failed login attempts. Please try again after " +
+                                retryAfter + " seconds",
+                        retryAfter
+                );
+            } else {
+                // Reset failed attempts after lock duration
+                user.setFailedLoginAttempts(0);
+                user.setLastFailedLoginAt(null);
+                userRepository.save(user);
             }
         }
 
@@ -328,21 +324,15 @@ public class UserService {
         LoginResponseDTO response = new LoginResponseDTO();
         response.setUserId(user.getUserId());
         response.setUsername(user.getUsername());
-        response.setEmail(user.getEmail()); response.setToken(token);
+        response.setEmail(user.getEmail());
+        response.setToken(token);
         response.setExpiresIn(3600); // 1 hour
+        
+        // Include business ID if user has a business profile
+        businessProfileRepository.findByUserId(user.getUserId())
+                .ifPresent(businessProfile -> response.setBusinessId(businessProfile.getBusinessId()));
 
         return response;
-    }
-
-    /**
-     * Fallback method for circuit breaker
-     */
-    public LoginResponseDTO loginFallback(UserLoginDTO loginDTO, Exception ex) {
-        log.error("Circuit breaker activated for login", ex);
-        throw new AccountLockedException(
-                "Too many failed login attempts. Please try again after 60 seconds",
-                60
-        );
     }
 
     /**
@@ -356,9 +346,9 @@ public class UserService {
                         requestDTO.getEmail()));
 
         // Generate 6-digit OTP
-        String otp = String.format("%06d", new Random().nextInt(999999));
+        String otp = String.format("%06d", random.nextInt(999999));
 
-        // TODO: Send OTP to user's mobile number via SMS service
+        
         // For now, just log it (in production, use SMS gateway)
         log.info("Generated OTP for {}: {}", user.getEmail(), otp);
         log.info("Send OTP to mobile: {}", maskPhoneNumber(user.getMobileNumber()));
@@ -380,7 +370,7 @@ public class UserService {
         User user = userRepository.findByEmail(verifyDTO.getEmail()) .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " +
                 verifyDTO.getEmail()));
 
-        // TODO: Verify OTP from database (password_reset_tokens table)
+        
         // For now, accepting any OTP for demo purposes
 
         // Update password
@@ -408,7 +398,7 @@ public class UserService {
         if (phone == null || phone.length() < 4) {
             return "******";
         }
-        return phone.substring(0, phone.length() - 4).replaceAll(".", "*") +
-                phone.substring(phone.length() - 4);
+        int maskLength = phone.length() - 4;
+        return "*".repeat(maskLength) + phone.substring(phone.length() - 4);
     }
 }

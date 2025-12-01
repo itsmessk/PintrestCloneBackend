@@ -5,7 +5,8 @@ import com.infy.pinterest.dto.PaginatedResponse;
 import com.infy.pinterest.dto.PaginationDTO;
 import com.infy.pinterest.dto.UserSummaryDTO;
 import com.infy.pinterest.entity.Notification;
-import com.infy.pinterest.entity.User;
+import com.infy.pinterest.exception.ResourceNotFoundException;
+import com.infy.pinterest.exception.UnauthorizedAccessException;
 import com.infy.pinterest.repository.NotificationRepository;
 import com.infy.pinterest.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -17,17 +18,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class NotificationService {
 
-    @Autowired
-    private NotificationRepository notificationRepository;
+    private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository) {
+        this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
+    }
 
     /**
      * Create a notification
@@ -65,7 +68,7 @@ public class NotificationService {
 
         List<NotificationResponseDTO> notifications = notificationPage.getContent().stream()
                 .map(this::buildNotificationResponse)
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 notificationPage.getNumber(),
@@ -94,10 +97,10 @@ public class NotificationService {
         log.info("Marking notification {} as read", notificationId);
 
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
 
         if (!notification.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized access to notification");
+            throw new UnauthorizedAccessException("Unauthorized access to notification");
         }
 
         notification.setIsRead(true);
@@ -122,10 +125,10 @@ public class NotificationService {
         log.info("Deleting notification {}", notificationId);
 
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
 
         if (!notification.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized access to notification");
+            throw new UnauthorizedAccessException("Unauthorized access to notification");
         }
 
         notificationRepository.delete(notification);

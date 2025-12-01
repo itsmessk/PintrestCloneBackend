@@ -18,24 +18,25 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
 @Slf4j
 public class SearchService {
 
-    @Autowired
-    private PinRepository pinRepository;
+    private final PinRepository pinRepository;
+    private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    private BoardRepository boardRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public SearchService(PinRepository pinRepository, BoardRepository boardRepository,
+                        UserRepository userRepository, ModelMapper modelMapper) {
+        this.pinRepository = pinRepository;
+        this.boardRepository = boardRepository;
+        this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Search pins with filters and sorting
@@ -59,7 +60,7 @@ public class SearchService {
         // Convert to DTOs using streams
         List<PinSearchResultDTO> results = pinPage.getContent().stream()
                 .map(this::convertToPinSearchResult)
-                .collect(Collectors.toList());
+                .toList();
 
         // Get search suggestions
         List<String> suggestions = getSearchSuggestions(keyword);
@@ -104,7 +105,7 @@ public class SearchService {
             // Convert to DTOs using streams
             List<BoardSearchResultDTO> results = boardPage.getContent().stream()
                     .map(this::convertToBoardSearchResult)
-                    .collect(Collectors.toList());
+                    .toList();
 
 
             // Get board name suggestions
@@ -150,7 +151,7 @@ public class SearchService {
         // Convert to DTOs using streams
         List<UserSearchResultDTO> results = userPage.getContent().stream()
                 .map(this::convertToUserSearchResult)
-                .collect(Collectors.toList());
+                .toList();
 
         // Get username suggestions
         List<String> suggestions = getUsernameSuggestions(keyword);
@@ -190,7 +191,7 @@ public class SearchService {
         return suggestions.stream()
                 .distinct()
                 .limit(10)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -207,7 +208,7 @@ public class SearchService {
 
         return suggestions.stream()
                 .distinct().limit(10)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -224,7 +225,7 @@ public class SearchService {
         return suggestions.stream()
                 .distinct()
                 .limit(10)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -238,7 +239,7 @@ public class SearchService {
 
         List<PinSearchResultDTO> results = pinPage.getContent().stream()
                 .map(this::convertToPinSearchResult)
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 pinPage.getNumber(),
@@ -299,7 +300,7 @@ public class SearchService {
         dto.setDescription(board.getDescription());
         dto.setCoverImageUrl(board.getCoverImageUrl());
         dto.setPinCount(board.getPinCount());
-        dto.setFollowers(0); // TODO: Implement follower count
+        dto.setFollowers(0); 
 
         // Get creator info
         userRepository.findById(board.getUserId()).ifPresent(user -> {
@@ -320,7 +321,7 @@ public class SearchService {
         dto.setProfilePictureUrl(user.getProfilePictureUrl());
         dto.setBio(user.getBio());
 
-        // TODO: Get follower/following counts from database
+        
         dto.setFollowers(0);
         dto.setFollowing(0);
 

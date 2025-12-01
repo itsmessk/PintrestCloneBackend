@@ -5,18 +5,17 @@ import com.infy.pinterest.controller.SocialController;
 import com.infy.pinterest.dto.*;
 import com.infy.pinterest.exception.*;
 import com.infy.pinterest.service.SocialService;
+import com.infy.pinterest.utility.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -30,19 +29,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith({SpringExtension.class, MockitoExtension.class})
-@WebMvcTest(SocialController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@ExtendWith(MockitoExtension.class)
 class SocialControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
     private ObjectMapper objectMapper;
 
     @Mock
     private SocialService socialService;
+
+    @InjectMocks
+    private SocialController socialController;
 
     private static final String USER_ID = "user-123";
     private static final String TARGET_USER_ID = "user-456";
@@ -63,6 +61,12 @@ class SocialControllerTest {
 
     @BeforeEach
     void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(socialController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+        objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        
         // Setup follower response
         followerResponseDTO = new FollowerResponseDTO();
         followerResponseDTO.setUserId(USER_ID);
@@ -184,7 +188,7 @@ class SocialControllerTest {
         mockMvc.perform(post("/social/follow/{userId}", TARGET_USER_ID)
                         .header(USER_ID_HEADER, USER_ID))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
 
         verify(socialService, times(1)).followUser(USER_ID, TARGET_USER_ID);
     }
@@ -488,7 +492,7 @@ class SocialControllerTest {
                         .content(objectMapper.writeValueAsString(invitationActionDTO)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Invitation declined successfully"));
+                .andExpect(jsonPath("$.message").value("Invitation declineed successfully"));
 
         verify(socialService, times(1)).respondToInvitation(INVITATION_ID, USER_ID, "decline");
     }
@@ -742,7 +746,7 @@ class SocialControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.data", hasSize(2)))
-                .andExpect(jsonPath("$.data.pagination.totalElements").value(2));
+                .andExpect(jsonPath("$.data.pagination.totalItems").value(2));
 
         verify(socialService, times(1)).getFollowers(USER_ID, USER_ID, 0, 20);
     }

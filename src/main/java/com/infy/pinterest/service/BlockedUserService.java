@@ -4,7 +4,8 @@ import com.infy.pinterest.dto.BlockedUserDTO;
 import com.infy.pinterest.dto.PaginatedResponse;
 import com.infy.pinterest.dto.PaginationDTO;
 import com.infy.pinterest.entity.BlockedUser;
-import com.infy.pinterest.entity.User;
+import com.infy.pinterest.exception.SelfBlockException;
+import com.infy.pinterest.exception.UserBlockedException;
 import com.infy.pinterest.repository.BlockedUserRepository;
 import com.infy.pinterest.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -61,11 +61,11 @@ public class BlockedUserService {
         log.info("User {} attempting to block user {}", blockerId, blockedId);
 
         if (blockerId.equals(blockedId)) {
-            throw new RuntimeException("Cannot block yourself");
+            throw new SelfBlockException("Cannot block yourself");
         }
 
         if (isUserBlocked(blockerId, blockedId)) {
-            throw new RuntimeException("User is already blocked");
+            throw new UserBlockedException("User is already blocked");
         }
 
         BlockedUser blockedUser = new BlockedUser();
@@ -87,7 +87,7 @@ public class BlockedUserService {
         log.info("User {} attempting to unblock user {}", blockerId, blockedId);
 
         if (!isUserBlocked(blockerId, blockedId)) {
-            throw new RuntimeException("User is not blocked");
+            throw new UserBlockedException("User is not blocked");
         }
 
         blockedUserRepository.deleteByBlockerIdAndBlockedId(blockerId, blockedId);
@@ -102,10 +102,10 @@ public class BlockedUserService {
      */
     public void validateNotBlocked(String currentUserId, String targetUserId) {
         if (isUserBlocked(currentUserId, targetUserId)) {
-            throw new RuntimeException("You have blocked this user");
+            throw new UserBlockedException("You have blocked this user");
         }
         if (isUserBlocked(targetUserId, currentUserId)) {
-            throw new RuntimeException("This user has blocked you");
+            throw new UserBlockedException("This user has blocked you");
         }
     }
 
@@ -138,7 +138,7 @@ public class BlockedUserService {
                     
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .toList();
         
         PaginationDTO pagination = new PaginationDTO(
                 blockedUsersPage.getNumber(),

@@ -4,7 +4,6 @@ package com.infy.pinterest.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page; 
@@ -34,6 +33,7 @@ import com.infy.pinterest.entity.User;
 import com.infy.pinterest.entity.UserReport;
 import com.infy.pinterest.exception.AlreadyFollowingException;
 import com.infy.pinterest.exception.BoardNotFoundException;
+import com.infy.pinterest.exception.InvalidInvitationStatusException;
 import com.infy.pinterest.exception.InvitationNotFoundException;
 import com.infy.pinterest.exception.NotFollowingException;
 import com.infy.pinterest.exception.ResourceNotFoundException;
@@ -53,29 +53,30 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SocialService {
 
-    @Autowired
-    private FollowRepository followRepository;
+    private final FollowRepository followRepository;
+    private final UserRepository userRepository;
+    private final InvitationRepository invitationRepository;
+    private final BoardRepository boardRepository;
+    private final BoardCollaboratorRepository collaboratorRepository;
+    private final BlockedUserRepository blockedUserRepository;
+    private final UserReportRepository userReportRepository;
+    private final NotificationService notificationService;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private InvitationRepository invitationRepository;
-
-    @Autowired
-    private BoardRepository boardRepository;
-
-    @Autowired
-    private BoardCollaboratorRepository collaboratorRepository;
-
-    @Autowired
-    private BlockedUserRepository blockedUserRepository;
-
-    @Autowired
-    private UserReportRepository userReportRepository;
-
-    @Autowired
-    private NotificationService notificationService;
+    public SocialService(FollowRepository followRepository, UserRepository userRepository,
+                        InvitationRepository invitationRepository, BoardRepository boardRepository,
+                        BoardCollaboratorRepository collaboratorRepository,
+                        BlockedUserRepository blockedUserRepository, UserReportRepository userReportRepository,
+                        NotificationService notificationService) {
+        this.followRepository = followRepository;
+        this.userRepository = userRepository;
+        this.invitationRepository = invitationRepository;
+        this.boardRepository = boardRepository;
+        this.collaboratorRepository = collaboratorRepository;
+        this.blockedUserRepository = blockedUserRepository;
+        this.userReportRepository = userReportRepository;
+        this.notificationService = notificationService;
+    }
 
     @Transactional
     public void followUser(String followerId, String followingId) {
@@ -154,7 +155,7 @@ public class SocialService {
                     return dto;
                 })
                 .filter(dto -> dto != null)
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 followPage.getNumber(),
@@ -193,7 +194,7 @@ public class SocialService {
                     return dto;
                 })
                 .filter(dto -> dto != null)
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 followPage.getNumber(),
@@ -279,7 +280,7 @@ public class SocialService {
 
         List<InvitationResponseDTO> invitations = invitationPage.getContent().stream()
                 .map(this::buildInvitationResponse)
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 invitationPage.getNumber(),
@@ -308,7 +309,7 @@ public class SocialService {
 
         List<InvitationResponseDTO> invitations = invitationPage.getContent().stream()
                 .map(this::buildInvitationResponse)
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 invitationPage.getNumber(),
@@ -408,7 +409,7 @@ public class SocialService {
 
         // Can only cancel pending invitations
         if (invitation.getStatus() != Invitation.Status.PENDING) {
-            throw new RuntimeException("Cannot cancel invitation with status: " + invitation.getStatus());
+            throw new InvalidInvitationStatusException("Cannot cancel invitation with status: " + invitation.getStatus());
         }
 
         invitationRepository.delete(invitation);

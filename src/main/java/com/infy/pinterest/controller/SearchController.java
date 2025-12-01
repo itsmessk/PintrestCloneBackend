@@ -1,23 +1,39 @@
 package com.infy.pinterest.controller;
 
 
-import com.infy.pinterest.dto.*;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.infy.pinterest.dto.ApiResponse;
+import com.infy.pinterest.dto.BoardSearchResultDTO;
+import com.infy.pinterest.dto.PaginatedResponse;
+import com.infy.pinterest.dto.PinSearchResultDTO;
+import com.infy.pinterest.dto.SearchRequestDTO;
+import com.infy.pinterest.dto.SearchResultDTO;
+import com.infy.pinterest.dto.UserSearchResultDTO;
 import com.infy.pinterest.service.SearchService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
 @RestController
 @RequestMapping("/search")
 @Tag(name = "Search", description = "Search and discovery APIs")
 @Slf4j
 public class SearchController {
 
+    private final SearchService searchService;
+
     @Autowired
-    private SearchService searchService;
+    public SearchController(SearchService searchService) {
+        this.searchService = searchService;
+    }
 
     @GetMapping("/pins")
     @Operation(summary = "Search pins")

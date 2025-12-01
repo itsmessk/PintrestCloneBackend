@@ -1,7 +1,6 @@
 package com.infy.pinterest.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,29 +41,30 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class PinService {
-    @Autowired
-    private PinRepository pinRepository;
+
+    private final PinRepository pinRepository;
+    private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
+    private final BoardCollaboratorRepository collaboratorRepository;
+    private final PinLikeRepository pinLikeRepository;
+    private final SavedPinRepository savedPinRepository;
+    private final FileUploadService fileUploadService;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    private BoardRepository boardRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private BoardCollaboratorRepository collaboratorRepository;
-
-    @Autowired
-    private PinLikeRepository pinLikeRepository;
-
-    @Autowired
-    private SavedPinRepository savedPinRepository;
-
-    @Autowired
-    private FileUploadService fileUploadService;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public PinService(PinRepository pinRepository, BoardRepository boardRepository,
+                     UserRepository userRepository, BoardCollaboratorRepository collaboratorRepository,
+                     PinLikeRepository pinLikeRepository, SavedPinRepository savedPinRepository,
+                     FileUploadService fileUploadService, ModelMapper modelMapper) {
+        this.pinRepository = pinRepository;
+        this.boardRepository = boardRepository;
+        this.userRepository = userRepository;
+        this.collaboratorRepository = collaboratorRepository;
+        this.pinLikeRepository = pinLikeRepository;
+        this.savedPinRepository = savedPinRepository;
+        this.fileUploadService = fileUploadService;
+        this.modelMapper = modelMapper;
+    }
 
     /**
      * Create a new pin
@@ -250,7 +250,7 @@ public class PinService {
                         Board board = boardRepository.findById(pin.getBoardId()).orElse(null);
                         return buildPinResponse(pin, user, board, requestingUserId);
                     })
-                    .collect(Collectors.toList());
+                    .toList();
             PaginationDTO pagination = new PaginationDTO(
                     pinPage.getNumber(),
                     pinPage.getTotalPages(),
@@ -277,7 +277,7 @@ public class PinService {
      User user = userRepository.findById(pin.getUserId()).orElse(null);
      return buildPinResponse(pin, user, board, requestingUserId);
      })
-     .collect(Collectors.toList());
+     .toList();
      PaginationDTO pagination = new PaginationDTO(
      pinPage.getNumber(),
      pinPage.getTotalPages(),
@@ -302,7 +302,7 @@ public class PinService {
                     Board board = boardRepository.findById(pin.getBoardId()).orElse(null);
                     return buildPinResponse(pin, user, board, requestingUserId);
                 })
-                .collect(Collectors.toList());PaginationDTO pagination = new PaginationDTO(
+                .toList();PaginationDTO pagination = new PaginationDTO(
                 pinPage.getNumber(),
                 pinPage.getTotalPages(),
                 pinPage.getTotalElements(),
@@ -326,7 +326,7 @@ public class PinService {
                     Board board = boardRepository.findById(pin.getBoardId()).orElse(null);
                     return buildPinResponse(pin, user, board);
                 })
-                .collect(Collectors.toList());
+                .toList();
         PaginationDTO pagination = new PaginationDTO(
                 pinPage.getNumber(),
                 pinPage.getTotalPages(),
@@ -357,7 +357,7 @@ public class PinService {
             List<BoardCollaborator> collaborations = collaboratorRepository.findByUserId(requestingUserId);
             List<String> collaborativeBoardIds = collaborations.stream()
                     .map(BoardCollaborator::getBoardId)
-                    .collect(Collectors.toList());
+                    .toList();
             
             // If no collaborative boards, add empty string to avoid SQL error
             if (collaborativeBoardIds.isEmpty()) {
@@ -380,7 +380,7 @@ public class PinService {
                     Board board = boardRepository.findById(pin.getBoardId()).orElse(null);
                     return buildPinResponse(pin, user, board, requestingUserId);
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 pinPage.getNumber(),

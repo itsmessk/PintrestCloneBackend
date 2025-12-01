@@ -3,7 +3,7 @@ package com.infy.pinterest.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor; import org.hibernate.annotations.GenericGenerator;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 @Entity
@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 public class ShowcasePin {
 
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "showcase_pin_id", length = 36)
     private String showcasePinId;
 

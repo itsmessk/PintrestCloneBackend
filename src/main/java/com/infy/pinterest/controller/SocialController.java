@@ -1,16 +1,36 @@
 package com.infy.pinterest.controller;
 
 
-import com.infy.pinterest.dto.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.infy.pinterest.dto.ApiResponse;
+import com.infy.pinterest.dto.FollowStatsDTO;
+import com.infy.pinterest.dto.FollowerResponseDTO;
+import com.infy.pinterest.dto.FollowingResponseDTO;
+import com.infy.pinterest.dto.InvitationResponseActionDTO;
+import com.infy.pinterest.dto.InvitationResponseDTO;
+import com.infy.pinterest.dto.InvitationSendDTO;
+import com.infy.pinterest.dto.PaginatedResponse;
+import com.infy.pinterest.dto.UserReportDTO;
 import com.infy.pinterest.service.SocialService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 
 
@@ -21,8 +41,12 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class SocialController {
 
+    private final SocialService socialService;
+
     @Autowired
-    private SocialService socialService;
+    public SocialController(SocialService socialService) {
+        this.socialService = socialService;
+    }
 
     @PostMapping("/follow/{userId}")
     @Operation(summary = "Follow a user")

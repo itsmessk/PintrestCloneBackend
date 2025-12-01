@@ -19,7 +19,14 @@ package com.infy.pinterest.controller;
  @SecurityRequirement(name = "JWT")
  @Slf4j
  public class BusinessController {
-     @Autowired    private BusinessService businessService;
+
+     private final BusinessService businessService;
+
+     @Autowired
+     public BusinessController(BusinessService businessService) {
+         this.businessService = businessService;
+     }
+
      // ========== BUSINESS PROFILE ==========
      @PostMapping("/profile")
      @Operation(summary = "Create business profile")

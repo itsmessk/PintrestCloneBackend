@@ -1,15 +1,28 @@
 package com.infy.pinterest.controller;
 
-import com.infy.pinterest.dto.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.infy.pinterest.dto.ApiResponse;
+import com.infy.pinterest.dto.PaginatedResponse;
+import com.infy.pinterest.dto.PinLikeResponseDTO;
+import com.infy.pinterest.dto.PinResponseDTO;
+import com.infy.pinterest.dto.SavedPinResponseDTO;
 import com.infy.pinterest.service.PinInteractionService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/pins")
@@ -18,8 +31,12 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class PinInteractionController {
 
+    private final PinInteractionService pinInteractionService;
+
     @Autowired
-    private PinInteractionService pinInteractionService;
+    public PinInteractionController(PinInteractionService pinInteractionService) {
+        this.pinInteractionService = pinInteractionService;
+    }
 
     // ==================== LIKE ENDPOINTS ====================
 

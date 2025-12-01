@@ -20,31 +20,34 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class BusinessService {
 
-    @Autowired
-    private BusinessProfileRepository businessProfileRepository;
+    private final BusinessProfileRepository businessProfileRepository;
+    private final BusinessShowcaseRepository showcaseRepository;
+    private final ShowcasePinRepository showcasePinRepository;
+    private final SponsoredPinRepository sponsoredPinRepository;
+    private final UserRepository userRepository;
+    private final PinRepository pinRepository;
+    private final BoardRepository boardRepository;
 
     @Autowired
-    private BusinessShowcaseRepository showcaseRepository;
-
-    @Autowired
-    private ShowcasePinRepository showcasePinRepository;
-
-    @Autowired
-    private SponsoredPinRepository sponsoredPinRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PinRepository pinRepository;
-
-    @Autowired
-    private BoardRepository boardRepository;
+    public BusinessService(BusinessProfileRepository businessProfileRepository,
+                          BusinessShowcaseRepository showcaseRepository,
+                          ShowcasePinRepository showcasePinRepository,
+                          SponsoredPinRepository sponsoredPinRepository,
+                          UserRepository userRepository,
+                          PinRepository pinRepository,
+                          BoardRepository boardRepository) {
+        this.businessProfileRepository = businessProfileRepository;
+        this.showcaseRepository = showcaseRepository;
+        this.showcasePinRepository = showcasePinRepository;
+        this.sponsoredPinRepository = sponsoredPinRepository;
+        this.userRepository = userRepository;
+        this.pinRepository = pinRepository;
+        this.boardRepository = boardRepository;
+    }
 
     @Transactional
     public BusinessProfileResponseDTO createBusinessProfile(String userId,
@@ -84,7 +87,7 @@ public class BusinessService {
 
         List<BusinessProfileResponseDTO> businesses = businessPage.getContent().stream()
                 .map(this::buildBusinessProfileResponse)
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 businessPage.getNumber(),
@@ -135,7 +138,7 @@ public class BusinessService {
                             businessProfileRepository.findById(showcase.getBusinessId()).orElse(null);
                     return buildShowcaseResponse(showcase, profile);
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 showcasePage.getNumber(),
@@ -190,7 +193,7 @@ public class BusinessService {
                     Pin pin = pinRepository.findById(sp.getPinId()).orElse(null);
                     return buildSponsoredPinResponse(sp, pin);
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 sponsoredPage.getNumber(),
@@ -215,7 +218,7 @@ public class BusinessService {
                     Pin pin = pinRepository.findById(sp.getPinId()).orElse(null);
                     return buildSponsoredPinResponse(sp, pin);
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 sponsoredPage.getNumber(),
@@ -300,7 +303,7 @@ public class BusinessService {
         List<Board> boards = boardRepository.findByUserId(profile.getUserId());
         List<BoardSummaryDTO> boardSummaries = boards.stream()
                 .map(b -> new BoardSummaryDTO(b.getBoardId(), b.getName()))
-                .collect(Collectors.toList());
+                .toList();
         dto.setBoards(boardSummaries);
 
         return dto;
@@ -335,7 +338,7 @@ public class BusinessService {
                     return null;
                 })
                 .filter(p -> p != null)
-                .collect(Collectors.toList());
+                .toList();
         dto.setPins(pins);
 
         return dto;

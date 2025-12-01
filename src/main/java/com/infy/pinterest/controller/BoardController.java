@@ -35,8 +35,13 @@ import lombok.extern.slf4j.Slf4j;
 @SecurityRequirement(name = "JWT")
 @Slf4j
 public class BoardController {
+
+    private final BoardService boardService;
+
     @Autowired
-    private BoardService boardService;
+    public BoardController(BoardService boardService) {
+        this.boardService = boardService;
+    }
 
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(summary = "Create a new board")

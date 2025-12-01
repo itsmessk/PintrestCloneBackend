@@ -22,7 +22,7 @@ public class FileUploadService {
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png",
             "gif", "webp");
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
+    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
     public String uploadImage(MultipartFile file) {
         if (file.isEmpty()) {
             throw new FileUploadException("Please select a file to upload");

@@ -27,8 +27,7 @@ public interface PinRepository extends JpaRepository<Pin, String>  {
     @Query("SELECT p FROM Pin p WHERE p.visibility = 'PUBLIC' AND p.isDraft = false")
     Page<Pin> findAllPublicPins(Pageable pageable);
 
-//    @Query("SELECT p FROM Pin p WHERE (p.title LIKE %:keyword% OR p.description LIKE %:keyword%)" + "AND p.visibility = 'PUBLIC' AND p.isDraft = false")
-//    Page<Pin> searchPins(@Param("keyword") String keyword, Pageable pageable);
+
 
     @Query("SELECT p FROM Pin p WHERE " +
             "(LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

@@ -4,20 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infy.pinterest.controller.UserController;
 import com.infy.pinterest.dto.*;
 import com.infy.pinterest.exception.ResourceNotFoundException;
+import com.infy.pinterest.exception.UnauthorizedAccessException;
 import com.infy.pinterest.service.UserService;
+import com.infy.pinterest.utility.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -31,19 +31,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith({SpringExtension.class, MockitoExtension.class})
-@WebMvcTest(UserController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
     private ObjectMapper objectMapper;
 
     @Mock
     private UserService userService;
+
+    @InjectMocks
+    private UserController userController;
 
     private static final String USER_ID = "user-123";
     private static final String OTHER_USER_ID = "user-456";
@@ -57,6 +56,12 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+        objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        
         // Setup user response DTO
         userResponseDTO = new UserResponseDTO();
         userResponseDTO.setUserId(USER_ID);
@@ -578,7 +583,7 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.data", hasSize(2)))
-                .andExpect(jsonPath("$.data.pagination.totalElements").value(2));
+                .andExpect(jsonPath("$.data.pagination.totalItems").value(2));
 
         verify(userService, times(1)).searchUsers("test", 0, 20);
     }

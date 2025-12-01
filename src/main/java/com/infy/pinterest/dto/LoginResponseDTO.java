@@ -13,5 +13,6 @@ public class LoginResponseDTO {
     private String email;
     private String token;
     private Integer expiresIn;
+    private String businessId; // Business profile ID if user has a business account
 }
 

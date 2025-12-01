@@ -19,8 +19,12 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class NotificationController {
 
+    private final NotificationService notificationService;
+
     @Autowired
-    private NotificationService notificationService;
+    public NotificationController(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
 
     @GetMapping
     @Operation(summary = "Get user's notifications")

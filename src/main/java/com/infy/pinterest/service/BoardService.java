@@ -1,7 +1,6 @@
 package com.infy.pinterest.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,22 +38,32 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class BoardService {
+
+    private final BoardRepository boardRepository;
+    private final PinRepository pinRepository;
+    private final UserRepository userRepository;
+    private final BoardCollaboratorRepository collaboratorRepository;
+    private final PinLikeRepository pinLikeRepository;
+    private final SavedPinRepository savedPinRepository;
+    private final FileUploadService fileUploadService;
+    private final ModelMapper modelMapper;
+
     @Autowired
-    private BoardRepository boardRepository;
-    @Autowired
-    private PinRepository pinRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private BoardCollaboratorRepository collaboratorRepository;
-    @Autowired
-    private PinLikeRepository pinLikeRepository;
-    @Autowired
-    private SavedPinRepository savedPinRepository;
-    @Autowired
-    private FileUploadService fileUploadService;
-    @Autowired
-    private ModelMapper modelMapper;    /**
+    public BoardService(BoardRepository boardRepository, PinRepository pinRepository,
+                       UserRepository userRepository, BoardCollaboratorRepository collaboratorRepository,
+                       PinLikeRepository pinLikeRepository, SavedPinRepository savedPinRepository,
+                       FileUploadService fileUploadService, ModelMapper modelMapper) {
+        this.boardRepository = boardRepository;
+        this.pinRepository = pinRepository;
+        this.userRepository = userRepository;
+        this.collaboratorRepository = collaboratorRepository;
+        this.pinLikeRepository = pinLikeRepository;
+        this.savedPinRepository = savedPinRepository;
+        this.fileUploadService = fileUploadService;
+        this.modelMapper = modelMapper;
+    }
+
+    /**
      * Create a new board
      */
     public BoardResponseDTO createBoard(String userId, BoardCreationDTO boardDTO, MultipartFile bannerImage) {
@@ -135,7 +144,7 @@ public class BoardService {
              dto.setPinCount(count != null ? count.intValue() : 0);
              return dto;
          })
-         .collect(Collectors.toList());
+         .toList();
          PaginationDTO pagination = new PaginationDTO(
                  boardPage.getNumber(),
                  boardPage.getTotalPages(),
@@ -160,7 +169,7 @@ public class BoardService {
          
          List<String> boardIds = collaborations.stream()
                  .map(BoardCollaborator::getBoardId)
-                 .collect(Collectors.toList());
+                 .toList();
          
          // Fetch boards by IDs
          List<Board> boards = boardRepository.findAllById(boardIds);
@@ -176,7 +185,7 @@ public class BoardService {
                      }
                      return 0;
                  })
-                 .collect(Collectors.toList());
+                 .toList();
          
          int start = page * size;
          int end = Math.min(start + size, boards.size());
@@ -189,7 +198,7 @@ public class BoardService {
                      dto.setPinCount(count != null ? count.intValue() : 0);
                      return dto;
                  })
-                 .collect(Collectors.toList());
+                 .toList();
          
          int totalPages = (int) Math.ceil((double) boards.size() / size);
          PaginationDTO pagination = new PaginationDTO(
@@ -217,7 +226,7 @@ public class BoardService {
              dto.setPinCount(count != null ? count.intValue() : 0);
              return dto;
          })
-         .collect(Collectors.toList());
+         .toList();
          PaginationDTO pagination = new PaginationDTO(
                  boardPage.getNumber(),
                  boardPage.getTotalPages(),
@@ -240,7 +249,7 @@ public class BoardService {
      .map(pin -> {User user = userRepository.findById(pin.getUserId()).orElse(null);
            return buildPinResponse(pin, user, board);
      })
-          .collect(Collectors.toList());
+          .toList();
           PaginationDTO pagination = new PaginationDTO(pinPage.getNumber(),
                   pinPage.getTotalPages(),
                   pinPage.getTotalElements(),
@@ -262,7 +271,7 @@ public class BoardService {
      Board board = boardRepository.findById(pin.getBoardId()).orElse(null);
      return buildPinResponse(pin, user, board);
      })
-     .collect(Collectors.toList());
+     .toList();
      PaginationDTO pagination = new PaginationDTO(pinPage.getNumber(),pinPage.getTotalPages(),pinPage.getTotalElements(),pinPage.getSize(),pinPage.hasNext(),pinPage.hasPrevious());
      return new PaginatedResponse<>(pins, pagination);
      }

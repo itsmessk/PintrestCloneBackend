@@ -8,13 +8,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,19 +30,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith({SpringExtension.class, MockitoExtension.class})
-@WebMvcTest(SearchController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@ExtendWith(MockitoExtension.class)
 class SearchControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @Mock
     private SearchService searchService;
+
+    @InjectMocks
+    private SearchController searchController;
 
     private PinSearchResultDTO pinSearchResult;
     private BoardSearchResultDTO boardSearchResult;
@@ -54,6 +55,9 @@ class SearchControllerTest {
 
     @BeforeEach
     void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(searchController).build();
+        objectMapper = new ObjectMapper();
+        
         // Setup user summary
         userSummary = new UserSummaryDTO();
         userSummary.setUserId("user-123");
@@ -256,7 +260,7 @@ class SearchControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.pagination.currentPage").value(2))
                 .andExpect(jsonPath("$.data.pagination.totalPages").value(5))
-                .andExpect(jsonPath("$.data.pagination.totalElements").value(100));
+                .andExpect(jsonPath("$.data.pagination.totalItems").value(100));
 
         verify(searchService, times(1)).searchPins(argThat(req ->
                 req.getPage() == 2 && req.getSize() == 20

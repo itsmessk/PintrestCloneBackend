@@ -2,6 +2,7 @@ package com.infy.pinterest.service;
 
 import com.infy.pinterest.dto.*;
 import com.infy.pinterest.entity.*;
+import com.infy.pinterest.exception.NotificationCreationException;
 import com.infy.pinterest.exception.PinNotFoundException;
 import com.infy.pinterest.exception.ResourceNotFoundException;
 import com.infy.pinterest.repository.*;
@@ -16,32 +17,32 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class PinInteractionService {
 
-    @Autowired
-    private PinLikeRepository pinLikeRepository;
+    private final PinLikeRepository pinLikeRepository;
+    private final SavedPinRepository savedPinRepository;
+    private final PinRepository pinRepository;
+    private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    private SavedPinRepository savedPinRepository;
-
-    @Autowired
-    private PinRepository pinRepository;
-
-    @Autowired
-    private BoardRepository boardRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    public PinInteractionService(PinLikeRepository pinLikeRepository, SavedPinRepository savedPinRepository,
+                                PinRepository pinRepository, BoardRepository boardRepository,
+                                UserRepository userRepository, NotificationService notificationService,
+                                ModelMapper modelMapper) {
+        this.pinLikeRepository = pinLikeRepository;
+        this.savedPinRepository = savedPinRepository;
+        this.pinRepository = pinRepository;
+        this.boardRepository = boardRepository;
+        this.userRepository = userRepository;
+        this.notificationService = notificationService;
+        this.modelMapper = modelMapper;
+    }
 
     // ==================== LIKE OPERATIONS ====================
 
@@ -80,7 +81,7 @@ public class PinInteractionService {
                         pinId,
                         "pin"
                 );
-            } catch (Exception e) {
+            } catch (NotificationCreationException e) {
                 log.error("Failed to create notification for pin like", e);
             }
         }
@@ -155,7 +156,7 @@ public class PinInteractionService {
                     return response;
                 })
                 .filter(pin -> pin != null)
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 likePage.getNumber(),
@@ -237,7 +238,7 @@ public class PinInteractionService {
                         pinId,
                         "pin"
                 );
-            } catch (Exception e) {
+            } catch (NotificationCreationException e) {
                 log.error("Failed to create notification for pin save", e);
             }
         }
@@ -325,7 +326,7 @@ public class PinInteractionService {
                     return response;
                 })
                 .filter(pin -> pin != null)
-                .collect(Collectors.toList());
+                .toList();
 
         PaginationDTO pagination = new PaginationDTO(
                 savePage.getNumber(),
